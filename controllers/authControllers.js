@@ -181,7 +181,39 @@ const resetPasswordController = async (req, res) => {
   }
 };
 
-const loginController = async (req, res) => {};
+const loginController = async (req, res) => {
+  const { email, password } = req.body;
+
+  if (emailValidator(res, email, "email")) {
+    return;
+  } else if (!password) {
+    return res
+      .status(400)
+      .send({ error: "Password Is Required", errorField: "password" });
+  }
+
+  try {
+    const existingUser = await UserModel.findOne({ email });
+    if (!existingUser) {
+      return res
+        .status(404)
+        .send({ error: "User Not Found", errorField: "email" });
+    }
+
+    const match = await bcrypt.compare(password, existingUser.password);
+
+    if (match) {
+      return res.status(200).send({ success: "Login Successfully" });
+    } else {
+      return res
+        .status(401)
+        .send({ error: "Crediential Error Occured", errorField: "password" });
+    }
+  } catch (error) {
+    console.log(error);
+    return res.status(500).send({ error: "Internal Server Error" });
+  }
+};
 
 module.exports = {
   signUpController,
