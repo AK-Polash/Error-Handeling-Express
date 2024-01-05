@@ -215,6 +215,23 @@ const loginController = async (req, res) => {
   }
 };
 
+const allUsersController = async (req, res) => {
+  try {
+    const allUsers = await UserModel.find({}).select({ password: 0, __v: 0 });
+    if (allUsers.length < 1) {
+      return res.status(404).send({ error: "Empty User List" });
+    }
+
+    return res.status(200).send({
+      success: "Users Found Successfully",
+      data: allUsers,
+    });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).send({ error: "Internal Server Error" });
+  }
+};
+
 module.exports = {
   signUpController,
   userVerificationController,
@@ -222,4 +239,5 @@ module.exports = {
   matchOtpController,
   resetPasswordController,
   loginController,
+  allUsersController,
 };
