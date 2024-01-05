@@ -116,11 +116,46 @@ const forgotPasswordController = async (req, res) => {
   }
 };
 
+const matchOtpController = async (req, res) => {
+  const { otp, email } = req.body;
+  try {
+    const existingUser = await UserModel.findOne({ email });
+    if (!existingUser) {
+      return res
+        .status(404)
+        .send({ error: "Untracked Email", errorField: "otp" });
+    }
+
+    if (!existingUser.otp) {
+      return res
+        .status(404)
+        .send({ error: "Already Matched OTP", errorField: "otp" });
+    }
+
+    if (existingUser.otp !== otp) {
+      return res
+        .status(404)
+        .send({ error: "OTP Does Not Match", errorField: "otp" });
+    }
+
+    await UserModel.updateOne(
+      { email },
+      { $unset: { otp: "" } },
+      { new: true }
+    );
+    return res.status(200).send({ success: "OTP Matched Successfully" });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).send({ error: "Internal Server Error" });
+  }
+};
+
 const loginController = async (req, res) => {};
 
 module.exports = {
   signUpController,
   userVerificationController,
   forgotPasswordController,
+  matchOtpController,
   loginController,
 };
