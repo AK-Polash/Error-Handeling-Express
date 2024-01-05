@@ -11,16 +11,16 @@ dbConfig();
 app.use(express.json());
 app.use(
   cors({
-    origin: "http://localhost:3000",
+    origin: "http://localhost:5173",
     optionsSuccessStatus: 200,
   })
 );
 
 app.use(_);
 
-app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).send("Something Went Wrong!");
-});
+// app.use((err, req, res, next) => {
+//   console.error(err.stack);
+//   res.status(500).send("Something Went Wrong!");
+// });
 
 app.listen(PORT, () => console.log(`PORT IS RUNNING ON ${PORT}`));
