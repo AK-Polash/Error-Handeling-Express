@@ -7,6 +7,7 @@ const {
 const UserModel = require("../models/userModel");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+const aleaRNGFactory = require("number-generator/lib/aleaRNGFactory");
 const tokenCreator = require("../utils/tokenCreator");
 const mailSender = require("../utils/mailSender");
 const verificationTemplate = require("../emailTemplates/verificationTemplate");
@@ -100,9 +101,8 @@ const forgotPasswordController = async (req, res) => {
         .send({ error: "User Not Found", errorField: "email" });
     }
 
-    const randomOtp = 123;
-    // Random number generate kore mail send korte hobe
-
+    const { uInt32 } = aleaRNGFactory(Date.now());
+    const randomOtp = uInt32().toString().substring(0, 5);
     await UserModel.findOneAndUpdate(
       { email },
       { $set: { otp: randomOtp } },
