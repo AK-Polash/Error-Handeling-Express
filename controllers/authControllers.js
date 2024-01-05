@@ -1,13 +1,13 @@
 require("dotenv").config();
+const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
+const aleaRNGFactory = require("number-generator/lib/aleaRNGFactory");
+const UserModel = require("../models/userModel");
 const {
   nameValidator,
   emailValidator,
   passwordValidator,
 } = require("../utils/validators");
-const UserModel = require("../models/userModel");
-const bcrypt = require("bcrypt");
-const jwt = require("jsonwebtoken");
-const aleaRNGFactory = require("number-generator/lib/aleaRNGFactory");
 const tokenCreator = require("../utils/tokenCreator");
 const mailSender = require("../utils/mailSender");
 const verificationTemplate = require("../emailTemplates/verificationTemplate");
@@ -128,7 +128,7 @@ const matchOtpController = async (req, res) => {
 
     if (!existingUser.otp) {
       return res
-        .status(404)
+        .status(400)
         .send({ error: "Already Matched OTP", errorField: "otp" });
     }
 
@@ -150,6 +150,37 @@ const matchOtpController = async (req, res) => {
   }
 };
 
+const resetPasswordController = async (req, res) => {
+  const { password, email } = req.body;
+  if (passwordValidator(res, password, "password")) {
+    return;
+  } else if (!email) {
+    return res
+      .status(400)
+      .send({ error: "Untracked User", errorField: "password" });
+  }
+
+  try {
+    const hash = await bcrypt.hash(password, 10);
+    const user = await UserModel.findOneAndUpdate(
+      { email },
+      { password: hash },
+      { new: true }
+    );
+
+    if (user === null) {
+      return res
+        .status(404)
+        .send({ error: "User Not Found", errorField: "password" });
+    }
+
+    return res.status(200).send({ success: "Password Updated Successfully" });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).send({ error: "Internal Server Error" });
+  }
+};
+
 const loginController = async (req, res) => {};
 
 module.exports = {
@@ -157,5 +188,6 @@ module.exports = {
   userVerificationController,
   forgotPasswordController,
   matchOtpController,
+  resetPasswordController,
   loginController,
 };
